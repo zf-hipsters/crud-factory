@@ -1,0 +1,10 @@
+<div class="form-group <?php if ($element->getMessages()):?>has-error<?php endif;?>">
+    <?php $this->formLabel()->openTag(array('class', 'asdsd'));?>
+    <label class="control-label" for="<?=$element->getName()?>"><?=$label?></label>
+    <?=$this->formText(
+        $element
+            ->setAttribute('class', 'form-control')
+            ->setAttribute('placeholder', 'Enter ' . $element->getAttribute('name')
+            ));
+    ?>
+</div>

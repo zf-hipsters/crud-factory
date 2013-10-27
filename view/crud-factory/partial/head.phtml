@@ -1,0 +1,17 @@
+<tr>
+    <?php foreach ($headers as $key=>$attribute):?>
+        <?php if (!isset($attribute['hide'])):?>
+            <?php
+            $dir = '';
+            if ($sort == $key) {
+                $dir = ($direction == 'desc')?"glyphicon-chevron-down":'glyphicon-chevron-up';
+                $switchDir = ($direction == 'desc')?"asc":'desc';
+            } else {
+                $switchDir = 'desc';
+            }
+            ?>
+            <th><a href="?sort=<?=$key?>&dir=<?=$switchDir?>"><span class="glyphicon <?=$dir?>"></span> <?=(isset($attribute['title']))?$attribute['title']:ucfirst($key) ?></a></th>
+        <?php endif;?>
+    <?php endforeach;?>
+    <th></th>
+</tr>

@@ -1,0 +1,4 @@
+<div class="form-group <?php if ($element->getMessages()):?>has-error<?php endif;?>">
+    <label class="control-label" for="<?=$element->getName()?>"><?=$label?></label>
+    <?=$this->formSelect($element->setAttribute('class', 'form-control'))?>
+</div>

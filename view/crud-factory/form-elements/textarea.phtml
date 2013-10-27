@@ -1,0 +1,10 @@
+<div class="form-group <?php if ($element->getMessages()):?>has-error<?php endif;?>">
+    <label class="control-label" for="<?=$element->getName()?>"><?=$label?></label>
+    <?=$this->formTextarea(
+        $element
+            ->setAttribute('class', 'form-control')
+            ->setAttribute('rows', '4')
+            ->setAttribute('placeholder', 'Enter ' . $element->getAttribute('name')
+            ));
+    ?>
+</div>

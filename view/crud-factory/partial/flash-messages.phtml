@@ -1,0 +1,30 @@
+
+<? if($this->flashMessenger('success')):?>
+    <div class="alert alert-block alert-success fade in">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <h4>Success!</h4>
+        <?php foreach ($this->flashMessenger('success') as $message):?>
+        <p><?=$message?></p>
+        <?php endforeach;?>
+    </div>
+<?php endif;?>
+
+<? if($this->flashMessenger('error')):?>
+    <div class="alert alert-block alert-danger fade in">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <h4>Error!</h4>
+        <?php foreach ($this->flashMessenger('error') as $message):?>
+            <p><?=$message?></p>
+        <?php endforeach;?>
+    </div>
+<?php endif;?>
+
+<? if($this->flashMessenger('info')):?>
+    <div class="alert alert-block alert-info fade in">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <h4>Information!</h4>
+        <?php foreach ($this->flashMessenger('error') as $message):?>
+            <p><?=$message?></p>
+        <?php endforeach;?>
+    </div>
+<?php endif;?>

@@ -1,0 +1,33 @@
+<?php $this->headScript()->prependFile('/assets/js/crudfactory.js');?>
+<h1><?=$module?> - Update</h1>
+
+<div class="row">
+    <?= $this->partial('crud-factory/partial/flash-messages') ?>
+</div>
+
+<div class="col-md-12">
+<?php
+// within a view script
+$form = $this->form;
+$form->prepare();
+
+// Set the method attribute for the form
+$form->setAttribute('method', 'post');
+$form->setAttribute('class', 'form-horizontal');
+
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+
+// Render the opening tag
+echo $this->form()->openTag($form);
+
+foreach ($form as $element) {
+    echo $this->formRow($element, null, null, 'crud-factory/form-elements/row');
+}
+
+echo $this->form()->closeTag();
+?>
+
+</div>
+
+<?$this->headScript()->prependScript('var module = "' . strtolower($module) . '";');?>

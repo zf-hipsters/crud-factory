@@ -1,0 +1,18 @@
+<div class="form-group <?php if ($element->getMessages()):?>has-error<?php endif;?>">
+    <label class="control-label" for="<?=$element->getName()?>"><?=$label?></label><br/>
+<?php foreach ($element->getValueOptions() as $key=>$option):?>
+    <?php
+    $checked = '';
+    if ($element->getCheckedValue() == $key) {
+        $checked = ' checked';
+    }
+    ?>
+    <div class="radio-inline">
+        <label>
+            <input type="radio" name="<?=$element->getName()?>" id="<?=$element->getAttribute('id')?>" value="<?=$key?>" <?=$checked?>>
+            <?=$option?>
+        </label>
+    </div>
+<?php endforeach;?>
+
+</div>

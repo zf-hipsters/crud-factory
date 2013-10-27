@@ -1,0 +1,8 @@
+<?=$this->partial('crud-factory/form-elements/' . $element->getAttribute('type'), $vars);?>
+<?php if ($element->getMessages()):?>
+    <span class="help-block">
+    <?php foreach($element->getMessages() as $message):?>
+        <?=$message?>
+    <?php endforeach?>
+    </span>
+<?php endif?>

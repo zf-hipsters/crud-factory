@@ -1,0 +1,39 @@
+<h1><?=$title?> <a class="btn btn-success" href="/<?=$module?>/create">Add new row</a></h1>
+
+<div class="row">
+    <?= $this->partial('crud-factory/partial/flash-messages') ?>
+</div>
+<div class="row">
+    <table class="table table-striped">
+        <thead>
+        <?= $this->partial('crud-factory/partial/head') ?>
+        </thead>
+        <tbody>
+        <?php $this->partialLoop()->setObjectKey('result');?>
+
+        <?=$this->partialLoop('crud-factory/partial/row', $results)?>
+
+        <?php if ($results->count() == 0):?>
+        <tr>
+            <td>No Records</td>
+
+            </tr>
+        <?php endif;?>
+        </tbody>
+        <tfoot>
+        <?= $this->partial('crud-factory/partial/foot') ?>
+        </tfoot>
+    </table>
+</div>
+
+<?=$this->paginationControl(
+    $results,
+    'sliding',
+    array('crud-factory/partial/paginator', 'Album'),
+    array(
+        'route' => $module
+    )
+);
+?>
+
+<?$this->headScript()->prependScript('var module = "' . $module . '";');?>

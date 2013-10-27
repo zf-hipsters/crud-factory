@@ -1,0 +1,5 @@
+<div class="form-group <?php if ($element->getMessages()):?>has-error<?php endif;?>">
+    <label class="control-label" for="<?=$element->getName()?>"><?=$label?></label>
+    <p class="form-control-static"><?=$element->getValue()?></p>
+    <?=$this->formHidden($element)?>
+</div>

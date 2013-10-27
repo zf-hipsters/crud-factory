@@ -1,0 +1,8 @@
+<tr>
+    <?php foreach ($headers as $key=>$attribute):?>
+        <?php if (!isset($attribute['hide'])):?>
+            <th><?=(isset($attribute['title']))?$attribute['title']:ucfirst($key) ?></th>
+        <?php endif;?>
+    <?php endforeach;?>
+    <th></th>
+</tr>
