@@ -16,7 +16,7 @@
     "require": {
         "php": ">=5.3.3",
         "zendframework/zendframework": ">2.2.0rc1",
-	"zf-hipsters/zfh-abstract-factory": ">=0.9"
+	"zf-hipsters/asset-manager": ">=0.9"
     },
     "autoload": {
         "psr-0": {
