@@ -1,6 +1,6 @@
 {
     "name": "zf-hipsters/crud-factory",
-    "description": “Build CRUD fast.. no.. really fast”,
+    "description": "Build CRUD fast.. no.. really fast",
     "type": "library",
     "keywords": [
         "zf2 abstract factory service"
@@ -20,7 +20,7 @@
     },
     "autoload": {
         "psr-0": {
-            “CrudFactory”: "src/"
+            "CrudFactory": "src/"
         },
         "classmap": [
             "./Module.php"
