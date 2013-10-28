@@ -1,3 +1,5 @@
+<?php $this->headScript()->prependFile('/crudfactory/assets/js/table.js');?>
+
 <h1><?=$title?> <a class="btn btn-success" href="/<?=$module?>/create">Add new row</a></h1>
 
 <div class="row">
@@ -10,7 +12,6 @@
         </thead>
         <tbody>
         <?php $this->partialLoop()->setObjectKey('result');?>
-
         <?=$this->partialLoop('crud-factory/partial/row', $results)?>
 
         <?php if ($results->count() == 0):?>

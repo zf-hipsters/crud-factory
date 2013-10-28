@@ -6,7 +6,6 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 use Zend\Paginator\Paginator;
 use Zend\Paginator\Adapter\DbTableGateway;
-use Zend\Db\Sql\Select;
 use Zend\Form\Form;
 use Zend\Form\Element;
 
@@ -15,15 +14,25 @@ use Zend\InputFilter\Input;
 use Zend\Validator;
 
 
+/**
+ * Class CrudFactory
+ * @package CrudFactory\Service
+ */
 class CrudFactory implements ServiceLocatorAwareInterface
 {
+    protected $tableGateway = null;
+    protected $entity = null;
+
+    /**
+     * Used to create new rows
+     * @param $entity
+     * @return bool
+     */
     public function create($entity)
     {
-        $tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
+        $update = $this->getHydrator()->extract($entity);
 
-        $hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
-
-        $update = $hydrator->extract($entity);
+        /** todo: Remove attributes from entity */
         unset($update['attributes']);
 
         $attributes = $entity->getAttributes();
@@ -33,22 +42,25 @@ class CrudFactory implements ServiceLocatorAwareInterface
             }
         }
 
-        $tableGateway->insert($update);
+        $this->getTableGateway()->insert($update);
 
         return true;
     }
 
+    /**
+     * Fetch a single row from the default database adapter
+     *
+     * @param $id
+     * @param bool $returnArray
+     * @return array|\ArrayObject|null
+     */
     public function read($id, $returnArray = false)
     {
-
-        /** @var \Zend\Db\TableGateway\AbstractTableGateway $tableGateway */
-        $tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
-        $results = $tableGateway->select(array('id' => $id));
+        $results = $this->getTableGateway()->select(array('id' => $id));
 
         if ($returnArray) {
             $record = $results->current();
-            $hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
-            $update = $hydrator->extract($record);
+            $update = $this->getHydrator()->extract($record);
             unset($update['attributes']);
 
             return $update;
@@ -57,10 +69,15 @@ class CrudFactory implements ServiceLocatorAwareInterface
         return $results->current();
     }
 
+    /**
+     * Read all rows from the database adapter
+     * @param string $sort
+     * @param string $dir
+     * @return Paginator
+     */
     public function readAll($sort = 'id', $dir = 'asc')
     {
-        /** @var \Zend\Db\TableGateway\AbstractTableGateway $tableGateway */
-        $tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
+        $tableGateway = $this->getTableGateway();
         $tableGateway->select();
 
         $sortBy = $sort . ' ' . $dir;
@@ -70,20 +87,19 @@ class CrudFactory implements ServiceLocatorAwareInterface
         return new Paginator($dbTableGatewayAdapter);
     }
 
+    /**
+     * @param $entity
+     * @return bool
+     */
     public function update($entity)
     {
         $id = $entity->getId();
-
-        $tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
-
         $originalEntity = $this->read($id);
 
-        $hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
-
         /** @var \Zend\Stdlib\Hydrator\ClassMethods $hydrator */
-        $hydrator->hydrate($hydrator->extract($entity), $originalEntity);
+        $this->getHydrator()->hydrate($this->getHydrator()->extract($entity), $originalEntity);
 
-        $update = $hydrator->extract($entity);
+        $update = $this->getHydrator()->extract($entity);
         unset($update['attributes']);
 
         $attributes = $entity->getAttributes();
@@ -93,14 +109,20 @@ class CrudFactory implements ServiceLocatorAwareInterface
             }
         }
 
-        $tableGateway->update($update, array('id' => $id));
+        $this->getTableGateway()->update($update, array('id' => $id));
 
         return true;
     }
 
+    /**
+     * @param $id
+     * @return bool
+     * @throws \Exception
+     */
     public function delete($id)
     {
-        $tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
+        $tableGateway = $this->getTableGateway();
+
         if ($this->getConfig('soft_delete') === true) {
             $results = $tableGateway->select(array('id', $id));
             $record = $results->current();
@@ -109,10 +131,9 @@ class CrudFactory implements ServiceLocatorAwareInterface
                 throw new \Exception('Soft deletable is selected, but entity does not have a delete property/methods');
             }
 
-            $hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
             $record->setDelete(1);
 
-            $update = $hydrator->extract($record);
+            $update = $this->getHydrator()->extract($record);
             unset($update['attributes'], $update['id']);
 
             $tableGateway->update($update, array('id' => $id));
@@ -124,6 +145,10 @@ class CrudFactory implements ServiceLocatorAwareInterface
         return true;
     }
 
+    /**
+     * @param bool $create
+     * @return Form
+     */
     public function buildForm($create = true)
     {
         $entity = $this->getServiceLocator()->get($this->getConfig('entity_prototype'));
@@ -142,83 +167,83 @@ class CrudFactory implements ServiceLocatorAwareInterface
         );
 
         foreach ($attributes as $key => $attribute) {
-                $label = (isset($attribute['title'])?$attribute['title']:ucwords($key));
-                $type = (isset($attribute['type'])?$attribute['type']:'text');
+            $label = (isset($attribute['title'])?$attribute['title']:ucwords($key));
+            $type = (isset($attribute['type'])?$attribute['type']:'text');
 
-                switch ($type) {
-                    case 'text':
-                        $element = new Element\Text($key);
-                        break;
-                    case 'int':
-                        $element = new Element\Text($key);
-                        $validators[] = 'Zend\Validator\Digits';
-                        $type = 'text';
-                        break;
-                    case 'float':
-                        $element = new Element\Text($key);
-                        $validators[] = 'Zend\I18n\Validator\Float';
-                        $type = 'text';
-                        break;
-                    case 'passowrd':
-                        $element = new Element\Password($key);
-                        break;
-                    case 'select':
-                        $element = new Element\Select($key);
-                        break;
-                    case 'radio':
-                        $element = new Element\Radio($key);
-                        break;
-                    case 'hidden':
-                        $element = new Element\Hidden($key);
-                        break;
-                    case 'checkbox':
-                        $element = new Element\Checkbox($key);
-                        break;
-                    case 'textarea':
-                        $element = new Element\Textarea($key);
-                        break;
-                    case 'wysiwyg':
-                        $element = new Element\Textarea($key);
-                        break;
-                    default:
-                        $element = new Element($key);
+            switch ($type) {
+                case 'text':
+                    $element = new Element\Text($key);
+                    break;
+                case 'int':
+                    $element = new Element\Text($key);
+                    $validators[] = 'Zend\Validator\Digits';
+                    $type = 'text';
+                    break;
+                case 'float':
+                    $element = new Element\Text($key);
+                    $validators[] = 'Zend\I18n\Validator\Float';
+                    $type = 'text';
+                    break;
+                case 'password':
+                    $element = new Element\Password($key);
+                    break;
+                case 'select':
+                    $element = new Element\Select($key);
+                    break;
+                case 'radio':
+                    $element = new Element\Radio($key);
+                    break;
+                case 'hidden':
+                    $element = new Element\Hidden($key);
+                    break;
+                case 'checkbox':
+                    $element = new Element\Checkbox($key);
+                    break;
+                case 'textarea':
+                    $element = new Element\Textarea($key);
+                    break;
+                case 'wysiwyg':
+                    $element = new Element\Textarea($key);
+                    break;
+                default:
+                    $element = new Element($key);
+            }
+
+            if ($create === true) {
+                if (isset($attribute['create']) && $attribute['create'] === false) {
+                    continue;
                 }
-
-                if ($create === true) {
-                    if (isset($attribute['create']) && $attribute['create'] === false) {
-                        continue;
-                    }
-                } else {
-                    if (isset($attribute['update']) && $attribute['update'] === false) {
-                        continue;
-                    }
+            } else {
+                if (isset($attribute['update']) && $attribute['update'] === false) {
+                    continue;
                 }
+            }
 
-                $element->setLabel($label);
-                $element->setAttributes(array(
-                    'type'  => $type
+            $element->setLabel($label);
+            $element->setAttributes(array(
+                'type'  => $type
+            ));
+
+            if (isset($attribute['options'])) {
+                $element->setOptions(array(
+                    'value_options' => $attribute['options']
                 ));
+            }
 
-                if (isset($attribute['options'])) {
-                    $element->setOptions(array(
-                        'value_options' => $attribute['options']
-                    ));
+            if (isset($attribute['required']) && $attribute['required'] === true) {
+
+                foreach ($validators as $validator) {
+                    $input = new Input($key);
+                    $input->getValidatorChain()
+                        ->attach(new $validator);
+                    $filter->add($input);
                 }
 
-                if (isset($attribute['required']) && $attribute['required'] === true) {
 
-                    foreach ($validators as $validator) {
-                        $input = new Input($key);
-                        $input->getValidatorChain()
-                            ->attach(new $validator);
-                        $filter->add($input);
-                    }
+            }
 
-
-                }
-
-                $form->setInputFilter($filter);
-                $form->add($element);
+            $form->setInputFilter($filter);
+            $form->add($element);
         }
 
 
@@ -246,12 +271,19 @@ class CrudFactory implements ServiceLocatorAwareInterface
         return $form;
     }
 
+    /**
+     * @return mixed
+     */
     public function getHeaders()
     {
         $entity = $this->getServiceLocator()->get($this->getConfig('entity_prototype'));
         return $entity->getAttributes();
      }
 
+    /**
+     * @param null $key
+     * @return array|object
+     */
     public function getConfig($key = null) {
         $config = $this->getServiceLocator()->get('CrudFactory\Service\Factory\Config');
 
@@ -282,4 +314,34 @@ class CrudFactory implements ServiceLocatorAwareInterface
     {
         return $this->serviceLocator;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getEntity()
+    {
+        if (is_null($this->entity)) {
+            $this->entity = $this->getServiceLocator()->get($this->getConfig('entity_prototype'));
+        }
+
+        return $this->entity;
+    }
+
+    public function getTableGateway() {
+        if (is_null($this->tableGateway)) {
+            $this->tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
+        }
+
+        return $this->tableGateway;
+    }
+
+    public function getHydrator()
+    {
+        if (is_null($this->hydrator)) {
+            $this->hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
+        }
+
+        return $this->hydrator;
+    }
+
 }

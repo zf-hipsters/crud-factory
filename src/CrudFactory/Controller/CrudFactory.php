@@ -4,10 +4,22 @@ namespace CrudFactory\Controller;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
+/**
+ * Class CrudFactory
+ * @package CrudFactory\Controller
+ */
 class CrudFactory extends AbstractActionController
 {
+    /**
+     * Service Singleton
+     * @var
+     */
     protected $service;
 
+    /**
+     * Crud - Create Row
+     * @return \Zend\Http\Response|ViewModel
+     */
     public function createAction()
     {
         $request = $this->getRequest();
@@ -39,11 +51,12 @@ class CrudFactory extends AbstractActionController
         return $viewModel;
     }
 
+    /**
+     * cRud - Read all rows
+     * @return ViewModel
+     */
     public function readAction()
     {
-        $helper = $this->getServiceLocator()->get('viewhelpermanager')->get('headScript');
-        $helper->prependFile('/assets/js/table.js');
-
         $sort = ($this->params()->fromQuery('sort'))?:'id';
         $dir = ($this->params()->fromQuery('dir'))?:'asc';
 
@@ -67,6 +80,11 @@ class CrudFactory extends AbstractActionController
         return $viewModel;
     }
 
+    /**
+     * crUd - Update Row
+     * @return \Zend\Http\Response|ViewModel
+     * @throws \Exception
+     */
     public function updateAction()
     {
         $id = $this->params()->fromRoute('id');
@@ -107,6 +125,10 @@ class CrudFactory extends AbstractActionController
         return $viewModel;
     }
 
+    /**
+     * cruD - Delete Row
+     * @throws \Exception
+     */
     public function deleteAction()
     {
         if (!$this->params()->fromRoute('id')) {
@@ -122,6 +144,10 @@ class CrudFactory extends AbstractActionController
 
     }
 
+    /**
+     * Return the crud factory service
+     * @return object CrudFactory\Service\CrudFactory
+     */
     protected function getService()
     {
         if (!$this->service instanceof \CrudFactory\Service\CrudFactory) {
