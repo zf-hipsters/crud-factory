@@ -1,4 +1,5 @@
-    <?php foreach ($result->getAttributes() as $key=>$attribute):?>
+
+    <?php foreach ($headers as $key=>$attribute):?>
 
         <?php
 
@@ -10,11 +11,13 @@
         }
 
         if (!isset($attribute['hide'])) {
-            if (method_exists($result, $getter)) {
+            if ($item = $result->$getter()) {
                 $output .= '<td>';
-                $output .= $result->$getter();
+                $output .= $item;
                 $output .= '</td>';
-            };
+            } else {
+                $output .= '<td></td>';
+            }
         }
         ?>
 

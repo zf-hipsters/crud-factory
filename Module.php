@@ -9,6 +9,10 @@
 
 namespace CrudFactory;
 
+use Zend\Mvc\MvcEvent;
+use Zend\Mvc\Router\SimpleRouteStack;
+use Zend\Mvc\Router\Http\Segment;
+
 class Module
 {
     public function getConfig()

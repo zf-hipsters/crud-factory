@@ -1,7 +1,7 @@
 <?php
 return array(
     'asset-manager' => array(
-        'crudfactory' => 'CrudFactory/src/CrudFactory/Assets',
+        'crudfactory' => dirname(__DIR__) . '/src/CrudFactory/Assets',
     ),
     'view_manager' => array(
         'template_path_stack' => array(

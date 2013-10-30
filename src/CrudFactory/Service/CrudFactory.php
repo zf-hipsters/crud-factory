@@ -4,8 +4,6 @@ namespace CrudFactory\Service;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-use Zend\Paginator\Paginator;
-use Zend\Paginator\Adapter\DbTableGateway;
 use Zend\Form\Form;
 use Zend\Form\Element;
 
@@ -20,146 +18,15 @@ use Zend\Validator;
  */
 class CrudFactory implements ServiceLocatorAwareInterface
 {
-    protected $tableGateway = null;
-    protected $entity = null;
-
-    /**
-     * Used to create new rows
-     * @param $entity
-     * @return bool
-     */
-    public function create($entity)
-    {
-        $update = $this->getHydrator()->extract($entity);
-
-        /** todo: Remove attributes from entity */
-        unset($update['attributes']);
-
-        $attributes = $entity->getAttributes();
-        foreach ($attributes as $key=>$attrib) {
-            if (isset($attrib['create']) && $attrib['create'] == false) {
-                unset($update[$key]);
-            }
-        }
-
-        $this->getTableGateway()->insert($update);
-
-        return true;
-    }
-
-    /**
-     * Fetch a single row from the default database adapter
-     *
-     * @param $id
-     * @param bool $returnArray
-     * @return array|\ArrayObject|null
-     */
-    public function read($id, $returnArray = false)
-    {
-        $results = $this->getTableGateway()->select(array('id' => $id));
-
-        if ($returnArray) {
-            $record = $results->current();
-            $update = $this->getHydrator()->extract($record);
-            unset($update['attributes']);
-
-            return $update;
-        }
-
-        return $results->current();
-    }
-
-    /**
-     * Read all rows from the database adapter
-     * @param string $sort
-     * @param string $dir
-     * @return Paginator
-     */
-    public function readAll($sort = 'id', $dir = 'asc')
-    {
-        $tableGateway = $this->getTableGateway();
-        $tableGateway->select();
-
-        $sortBy = $sort . ' ' . $dir;
-
-        $dbTableGatewayAdapter = new DbTableGateway($tableGateway, null, $sortBy);
-
-        return new Paginator($dbTableGatewayAdapter);
-    }
-
-    /**
-     * @param $entity
-     * @return bool
-     */
-    public function update($entity)
-    {
-        $id = $entity->getId();
-        $originalEntity = $this->read($id);
-
-        /** @var \Zend\Stdlib\Hydrator\ClassMethods $hydrator */
-        $this->getHydrator()->hydrate($this->getHydrator()->extract($entity), $originalEntity);
-
-        $update = $this->getHydrator()->extract($entity);
-        unset($update['attributes']);
-
-        $attributes = $entity->getAttributes();
-        foreach ($attributes as $key=>$attrib) {
-            if (isset($attrib['update']) && $attrib['update'] == false) {
-                unset($update[$key]);
-            }
-        }
-
-        $this->getTableGateway()->update($update, array('id' => $id));
-
-        return true;
-    }
-
-    /**
-     * @param $id
-     * @return bool
-     * @throws \Exception
-     */
-    public function delete($id)
-    {
-        $tableGateway = $this->getTableGateway();
-
-        if ($this->getConfig('soft_delete') === true) {
-            $results = $tableGateway->select(array('id', $id));
-            $record = $results->current();
-
-            if (!method_exists($record, 'setDelete')) {
-                throw new \Exception('Soft deletable is selected, but entity does not have a delete property/methods');
-            }
-
-            $record->setDelete(1);
-
-            $update = $this->getHydrator()->extract($record);
-            unset($update['attributes'], $update['id']);
-
-            $tableGateway->update($update, array('id' => $id));
-
-            return true;
-        }
-
-        $tableGateway->delete(array('id' => $id));
-        return true;
-    }
-
     /**
      * @param bool $create
      * @return Form
      */
     public function buildForm($create = true)
     {
-        $entity = $this->getServiceLocator()->get($this->getConfig('entity_prototype'));
-        $hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
-
-        $attributes = $entity->getAttributes();
+        $attributes = $this->getHeaders();
 
         $form = new Form();
-        $form->setHydrator($hydrator);
-        $form->bind($entity);
-
         $filter = new InputFilter();
 
         $validators = array(
@@ -276,9 +143,8 @@ class CrudFactory implements ServiceLocatorAwareInterface
      */
     public function getHeaders()
     {
-        $entity = $this->getServiceLocator()->get($this->getConfig('entity_prototype'));
-        return $entity->getAttributes();
-     }
+        return $this->getConfig('table_configuration');
+    }
 
     /**
      * @param null $key
@@ -313,35 +179,6 @@ class CrudFactory implements ServiceLocatorAwareInterface
     public function getServiceLocator()
     {
         return $this->serviceLocator;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEntity()
-    {
-        if (is_null($this->entity)) {
-            $this->entity = $this->getServiceLocator()->get($this->getConfig('entity_prototype'));
-        }
-
-        return $this->entity;
-    }
-
-    public function getTableGateway() {
-        if (is_null($this->tableGateway)) {
-            $this->tableGateway = $this->getServiceLocator()->get('CrudFactory\Service\Factory\TableGateway');
-        }
-
-        return $this->tableGateway;
-    }
-
-    public function getHydrator()
-    {
-        if (is_null($this->hydrator)) {
-            $this->hydrator = $this->getServiceLocator()->get($this->getconfig('hydrator_class'));
-        }
-
-        return $this->hydrator;
     }
 
 }
