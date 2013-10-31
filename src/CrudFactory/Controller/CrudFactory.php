@@ -153,7 +153,7 @@ class CrudFactory extends AbstractActionController
             'form' =>$form
         ));
 
-        $viewModel->setTemplate('crud-factory/crud-factory/config');
+        $viewModel->setTemplate('crud-factory/crud-factory/update');
 
         return $viewModel;
     }
@@ -184,52 +184,6 @@ class CrudFactory extends AbstractActionController
 
     }
 
-    public function configAction()
-    {
-        $request = $this->getRequest();
-        $entity = $this->getService()->getEntity();
-
-
-        $config = new \Zend\Config\Config($this->getServiceLocator()->get('Config'), true);
-
-        var_Dump(strtolower($this->params()->fromRoute('__CONTROLLER__')));
-        /** @var \Zend\Config\Config $cfconfig */
-        $cfconfig = $config['crud-factory'][strtolower($this->params()->fromRoute('__CONTROLLER__'))];
-//        $cfconfig->people = 'dog';
-
-        $ewriter = new \Zend\Config\Writer\PhpArray();
-        $ewriter->toString($cfconfig);
-
-        $newEntity = $this->getServiceLocator()->get('CrudFactory\Entity\Config');
-        $this->getService()->setEntity($newEntity);
-
-        $form = $this->getService()->buildForm();
-
-        if ($request->isPost()) {
-            $postVars = $this->params()->fromPost();
-            $form->setData($postVars);
-
-            if ($form->isValid()) {
-                $this->getService()->create($form->getData());
-
-                $module = strtolower($this->params()->fromRoute('__CONTROLLER__'));
-                $this->flashMessenger()->setNamespace('success')->addMessage('The row was successfully created.');
-                return $this->redirect()->toRoute($module);
-
-            }
-
-            $this->flashMessenger()->setNamespace('error')->addMessage('Please check the form fields below for errors.');
-        }
-
-        $viewModel = new ViewModel(array(
-            'module' => $this->params()->fromRoute('__CONTROLLER__'),
-            'form' =>$form
-        ));
-
-        $viewModel->setTemplate('crud-factory/crud-factory/config');
-
-        return $viewModel;
-    }
 
     /**
      * Return the crud factory service
@@ -239,14 +193,12 @@ class CrudFactory extends AbstractActionController
     {
         if (!$this->service instanceof \CrudFactory\Service\ServiceInterface) {
             $abstract = $this->getServiceLocator()->get('CrudFactory\Service\CrudFactory');
-            $config = $abstract->getConfig('service_class');
 
             if ($abstract->getConfig('service_class')) {
                 $service = $this->getServiceLocator()->get($abstract->getConfig('service_class'));
             } else {
                 $service = $this->getServiceLocator()->get('CrudFactory\Service\Strategy\TableGateway');
             }
-
 
             if (!$service instanceof \CrudFactory\Service\ServiceInterface) {
                 throw new \Exception('The service class must implement CrudFactory\Service\ServiceInterface');

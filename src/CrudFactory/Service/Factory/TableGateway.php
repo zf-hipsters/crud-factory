@@ -17,11 +17,8 @@ class TableGateway implements FactoryInterface
 
         $moduleConfig = $config['crud-factory'][strtolower($routeMatch->getParam('controller'))];
 
-        if (empty($moduleConfig)) {
-            throw new \Exception('Config file cannot be found / parsed.');
-        }
+        $dbAdapter = $serviceLocator->get('Zend\Db\Adapter\Adapter');
 
-        $dbAdapter = $serviceLocator->get('CrudFactory\Service\Factory\DbAdapter');
         $hydrator = $serviceLocator->get($moduleConfig['hydrator_class']);
         $rowObjectPrototype = $serviceLocator->get($moduleConfig['entity_prototype']);
 

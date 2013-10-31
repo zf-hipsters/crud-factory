@@ -23,9 +23,12 @@ class TableGateway extends CrudService implements CrudInterface
      */
     public function create($postData)
     {
-        $this->getHydrator()->hydrate($postData, $this->getEntity());
+        $entity = clone $this->getEntity();
+        $postData = $entity->cleanData($postData);
+        $this->getHydrator()->hydrate($postData, $entity);
 
-        $data = $this->getHydrator()->extract($this->getEntity());
+        $data = $this->getHydrator()->extract($entity);
+
         $attributes = $this->getHeaders();
         foreach ($attributes as $key=>$attrib) {
             if (isset($attrib['create']) && $attrib['create'] == false) {
@@ -83,15 +86,16 @@ class TableGateway extends CrudService implements CrudInterface
      */
     public function update($postData)
     {
-        $entity = $this->getEntity();
-        $this->getHydrator()->hydrate($postData, $this->getEntity());
+        $entity = clone $this->getEntity();
+        $postData = $entity->cleanData($postData);
+        $this->getHydrator()->hydrate($postData, $entity);
 
         $id = $entity->getId();
         $originalEntity = $this->read($id);
 
+
         /** @var \Zend\Stdlib\Hydrator\ClassMethods $hydrator */
         $this->getHydrator()->hydrate($this->getHydrator()->extract($entity), $originalEntity);
-
         $update = $this->getHydrator()->extract($entity);
 
         $attributes = $this->getHeaders();
@@ -134,8 +138,6 @@ class TableGateway extends CrudService implements CrudInterface
         $tableGateway->delete(array('id' => $id));
         return true;
     }
-
-
 
     public function setEntity($entity)
     {

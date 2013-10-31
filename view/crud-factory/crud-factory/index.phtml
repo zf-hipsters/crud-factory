@@ -1,8 +1,6 @@
 <?php $this->headScript()->prependFile('/crudfactory/assets/js/table.js');?>
 
-<h1><?=$title?> <a class="btn btn-success" href="/<?=$module?>/create">Add new row</a>
-    <a href="/<?=$module?>/config" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span></a>
-</h1>
+<h1><?=$title?> <a class="btn btn-success" href="/<?=$module?>/create">Add new row</a></h1>
 
 <div class="row">
     <?= $this->partial('crud-factory/partial/flash-messages') ?>

@@ -1,3 +1,5 @@
+<?php echo $this->headScript()->prependFile('/crudfactory/assets/js/crudfactory.js');?>
+
 <h1>Configure Module</h1>
 
 <div class="row">
@@ -5,27 +7,48 @@
 </div>
 
 <div class="col-md-12">
-    <?php
-    // within a view script
-    $form = $this->form;
-    $form->prepare();
+    <ul class="nav nav-tabs">
+        <li><a href="#base" data-toggle="tab">Base Config</a></li>
+        <li><a href="#table" data-toggle="tab">Table Config</a></li>
+        <li><a href="#advanced" data-toggle="tab">Advanced</a></li>
+    </ul>
 
-    // Set the method attribute for the form
-    $form->setAttribute('method', 'post');
-    $form->setAttribute('class', 'form-horizontal');
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div class="tab-pane" id="base">
+            <form role="form">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">Email address</label>
+                    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Password</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputFile">File input</label>
+                    <input type="file" id="exampleInputFile">
+                    <p class="help-block">Example block-level help text here.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox"> Check me out
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+        </div>
+        <div class="tab-pane" id="table">...</div>
+        <div class="tab-pane" id="advanced">...</div>
+    </div>
 
-    // Get the form label plugin
-    $formLabel = $this->plugin('formLabel');
+    <script>
+        $(function () {
+            $('.nav-tabs a:first').tab('show')
+        })
+    </script>
 
-    // Render the opening tag
-    echo $this->form()->openTag($form);
 
-    foreach ($form as $element) {
-        echo $this->formRow($element, null, null, 'crud-factory/form-elements/row');
-    }
-
-    echo $this->form()->closeTag();
-    ?>
 </div>
 
 <?$this->headScript()->prependScript('var module = "' . strtolower($module) . '";');?>

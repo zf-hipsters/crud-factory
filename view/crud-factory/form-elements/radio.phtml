@@ -3,7 +3,13 @@
 <?php foreach ($element->getValueOptions() as $key=>$option):?>
     <?php
     $checked = '';
-    if ($element->getCheckedValue() == $key) {
+
+    $val = $element->getValue();
+    if (is_bool($val)) {
+        $val = intval($val);
+    }
+
+    if ($val == $key) {
         $checked = ' checked';
     }
     ?>

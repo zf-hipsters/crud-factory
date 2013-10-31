@@ -29,9 +29,7 @@ class CrudFactory implements ServiceLocatorAwareInterface
         $form = new Form();
         $filter = new InputFilter();
 
-        $validators = array(
-            'Zend\Validator\NotEmpty'
-        );
+        $validators = array();
 
         foreach ($attributes as $key => $attribute) {
             $label = (isset($attribute['title'])?$attribute['title']:ucwords($key));
@@ -98,15 +96,16 @@ class CrudFactory implements ServiceLocatorAwareInterface
             }
 
             if (isset($attribute['required']) && $attribute['required'] === true) {
+                $validators[] =  'Zend\Validator\NotEmpty';
+            }
 
+            if (!empty($validators)) {
                 foreach ($validators as $validator) {
                     $input = new Input($key);
                     $input->getValidatorChain()
                         ->attach(new $validator);
                     $filter->add($input);
                 }
-
-
             }
 
             $form->setInputFilter($filter);
@@ -154,7 +153,11 @@ class CrudFactory implements ServiceLocatorAwareInterface
         $config = $this->getServiceLocator()->get('CrudFactory\Service\Factory\Config');
 
         if (!is_null($key)) {
-            return $config[$key];
+            if (isset($config[$key])) {
+                return $config[$key];
+            }
+
+            return false;
         }
 
         return $config;
